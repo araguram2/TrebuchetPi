@@ -24,7 +24,7 @@
  */
 
 #define PORT 8080
-#define SEND_PER 10
+#define SEND_PER 100
 #define JX_PIN A0
 #define JY_PIN A1
 #define JSW_PIN D1 // Interrupts not supported on D1
@@ -34,7 +34,7 @@
 /* Declaring global variables */
 TCPClient client;
 //byte server[] = {128, 237, 162, 159}; // Joe PC
-byte server[] = {128, 237, 184, 183};
+byte server[] = {128, 237, 128, 84};
 byte send_buf[BUF_SIZE];
 byte fire_code[BUF_SIZE];
 unsigned char read_buf[1];
@@ -47,11 +47,11 @@ void setup() {
 
   fire_code[BUF_SIZE - 1] = 1;
   send_buf[BUF_SIZE - 1] = 0;
-
+  Serial.println("Connecting...");
   client.connect(server, PORT);  
   Serial.println("Connection success.");
-
-  attachSystemInterrupt(JSW_PIN, handle_fire, UP);
+  pinMode(JSW_PIN, INPUT_PULLDOWN);
+  attachInterrupt(JSW_PIN, handle_fire, RISING);
 }
 
 /* 
@@ -76,13 +76,18 @@ void loop() {
   }
 
   if(!client.connected()) {
-    Serial.println("Server disconnected. ")
+    Serial.println("Server disconnected. Reconnecting...");
     client.stop();
+    
+    client.connect(server, PORT);  
   }
 
   else {
     client.write(send_buf, (size_t)BUF_SIZE);
-    Serial.println("Sent x = %d, y = %d", x_dc, y_dc);
+    Serial.print("Sent x = ");
+    Serial.print(x_dc);
+    Serial.print(", y = ");
+    Serial.println(y_dc);
     // Wait for server ack before proceeding
     while(client.read(read_buf, 1) != -1);
   }
@@ -95,11 +100,11 @@ void loop() {
 void handle_fire() {
   if(!client.connected()) {
     client.stop();
-    Serial.println("Error sending fire: Disconnected from server");
+    //Serial.println("Error sending fire: Disconnected from server");
   }
 
   else {
     client.write(fire_code, BUF_SIZE);
-    Serial.println("FIRE!");
+    //Serial.println("FIRE!");
   }
 }
