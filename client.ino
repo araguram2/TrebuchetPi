@@ -21,6 +21,9 @@
  * send the fire code (MSB = 1 => fire, otherwise nothing). This is to 
  * ensure that button pushes which occur during the hanging periods are still
  * handled. 
+ * 
+ * Code can be compiled and flashed using $ ./photon_make client.ino <dev name>
+ * Serial monitor is opened with $ particle serial monitor
  */
 
 #define PORT 8080
@@ -50,7 +53,8 @@ void setup() {
     send_buf[a] = 0;
 
   Serial.println("Connecting...");
-  client.connect(server, PORT);  
+  while(!client.connected())
+    client.connect(server, PORT);  
   Serial.println("Connection success.");
   pinMode(JSW_PIN, INPUT_PULLDOWN);
   attachInterrupt(JSW_PIN, handle_fire, RISING);
@@ -81,7 +85,8 @@ void loop() {
     Serial.println("Server disconnected. Reconnecting...");
     client.stop();
     
-    client.connect(server, PORT);  
+    while(!client.connected())
+      client.connect(server, PORT);  
   }
 
   else {
