@@ -29,7 +29,7 @@
 #define JY_PIN A1
 #define JSW_PIN D1 // Interrupts not supported on D1
 #define ADC_RES 12 // in bits
-#define BUF_SIZE (2 * ADC_RES + 1)
+#define BUF_SIZE 32
 
 /* Declaring global variables */
 TCPClient client;
@@ -45,8 +45,10 @@ void setup() {
   // Make sure your Serial Terminal app is closed before powering your device
   Serial.begin(9600);
 
-  fire_code[BUF_SIZE - 1] = 1;
-  send_buf[BUF_SIZE - 1] = 0;
+  fire_code[2 * ADC_RES] = 1;
+  for(int a = ADC_RES * 2; a < BUF_SIZE; a++) 
+    send_buf[a] = 0;
+
   Serial.println("Connecting...");
   client.connect(server, PORT);  
   Serial.println("Connection success.");
